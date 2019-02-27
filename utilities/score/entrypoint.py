@@ -205,7 +205,7 @@ class ScoreUtility(Utility):
             # meteor = re.match(r"^.*Final\sscore:\s+([\d\.]+).*$", result.decode('ascii'), re.DOTALL)
             # if meteor is not None:
                 # return round(float(meteor.group(1))*100, 2)
-            subfolder = str(random.randint(1, 12))
+            subfolder = str(random.randint(7, 12))
             subprocess.call(['cp', tgtfile, basefolder + subfolder + '/%s.%s' % (fname, lang.lower())])
             subprocess.call(['cp', file_ref.name, basefolder + subfolder + '/%s.%s' % (fname, str(nRef))])
             subprocess.call(['touch', basefolder + subfolder + '.name/%s' % (fname)])
