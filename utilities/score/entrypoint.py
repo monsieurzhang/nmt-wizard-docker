@@ -6,6 +6,7 @@ import subprocess
 import json
 import time
 from multiprocessing.pool import ThreadPool
+import random
 
 from nmtwizard.utility import Utility
 from nmtwizard.logger import get_logger
@@ -25,7 +26,8 @@ class ScoreUtility(Utility):
             "NIST": "all",
             "Meteor": "cz,de,en,es,fr,ru"
             }
-        self.pool = ThreadPool(processes=int(os.getenv("NB_CPU", "5")))
+        t = int(os.getenv("NB_CPU", "5"))
+        self.pool = ThreadPool(processes=t)
 
     @property
     def name(self):
@@ -181,6 +183,8 @@ class ScoreUtility(Utility):
         return 0
 
     def eval_METEOR(self, tgtfile, reffile, lang):
+        fname = time.strftime("%y%m%d%H%M%S", time.gmtime())
+        basefolder = '/export/home/zhang/cache/'
         reffile = reffile.split(',')
         with tempfile.NamedTemporaryFile(mode='w') as file_ref:
             file_handles = []
@@ -193,15 +197,18 @@ class ScoreUtility(Utility):
                     line = file_handles[idx].readline()
                     file_ref.write(line)
             file_ref.flush()
-            result = self.exec_command_with_timeout(['/usr/bin/java', '-Xmx2G', '-jar',
-                                  os.path.join(self._tools_dir, 'METEOR', 'meteor-1.5.jar'),
-                                  tgtfile, file_ref.name,
-                                  '-l', lang.lower(), '-norm', '-r', str(nRef)])
-            meteor = re.match(r"^.*Final\sscore:\s+([\d\.]+).*$", result.decode('ascii'), re.DOTALL)
-            if meteor is not None:
-                return round(float(meteor.group(1))*100, 2)
-
-            return 0
+            # result = self.exec_command_with_timeout(['/usr/bin/java', '-Xmx2G', '-jar',
+                                  # os.path.join(self._tools_dir, 'METEOR', 'meteor-1.5.jar'),
+                                  # tgtfile, file_ref.name,
+                                  # '-l', lang.lower(), '-norm', '-r', str(nRef)])
+            # meteor = re.match(r"^.*Final\sscore:\s+([\d\.]+).*$", result.decode('ascii'), re.DOTALL)
+            # if meteor is not None:
+                # return round(float(meteor.group(1))*100, 2)
+            subfolder = str(random.randint(1, 12))
+            subprocess.call(['cp', tgtfile, basefolder + subfolder + '/%s.%s' % (fname, lang.lower())])
+            subprocess.call(['cp', file_ref.name, basefolder + subfolder + '/%s.%s' % (fname, str(nRef))])
+            subprocess.call(['touch', basefolder + subfolder + '.name/%s' % (fname)])
+            return fname
 
     def check_file_exist(self, file_list):
         all_file_exist = True
@@ -267,7 +274,7 @@ class ScoreUtility(Utility):
                     score[args.output[i]][metric] = v
                 if metric == 'Meteor':
                     v = thread_list[metric].get()
-                    print("%s: %.2f" % (metric, v))
+                    print("%s: %s" % (metric, v))
                     score[args.output[i]][metric] = v
 
             os.remove(output_tok[0])
