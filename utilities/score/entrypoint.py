@@ -184,7 +184,7 @@ class ScoreUtility(Utility):
 
     def eval_METEOR(self, tgtfile, reffile, lang):
         fname = time.strftime("%y%m%d%H%M%S", time.gmtime())
-        basefolder = '/export/home/zhang/cache/'
+        basefolder = '/home/ec2-user/cache/'
         reffile = reffile.split(',')
         with tempfile.NamedTemporaryFile(mode='w') as file_ref:
             file_handles = []
